@@ -1,21 +1,10 @@
-use std::io::{self, Write};
-
+use std::io::{self, Error, Write};
+use std::mem;
+use windows::Win32::System::Console::{GetConsoleScreenBufferInfoEx, CONSOLE_SCREEN_BUFFER_INFOEX};
 use windows::Win32::{
     Foundation::HANDLE, 
     System::Console::{
-        GetConsoleMode, 
-        GetStdHandle, 
-        SetConsoleMode, 
-        CONSOLE_MODE, 
-        DISABLE_NEWLINE_AUTO_RETURN, 
-        ENABLE_ECHO_INPUT, 
-        ENABLE_LINE_INPUT, 
-        ENABLE_PROCESSED_INPUT, 
-        ENABLE_PROCESSED_OUTPUT, 
-        ENABLE_VIRTUAL_TERMINAL_PROCESSING, 
-        ENABLE_WRAP_AT_EOL_OUTPUT, 
-        STD_INPUT_HANDLE, 
-        STD_OUTPUT_HANDLE
+        self, GetConsoleMode, GetStdHandle, SetConsoleMode, CONSOLE_MODE, DISABLE_NEWLINE_AUTO_RETURN, ENABLE_ECHO_INPUT, ENABLE_LINE_INPUT, ENABLE_PROCESSED_INPUT, ENABLE_PROCESSED_OUTPUT, ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WRAP_AT_EOL_OUTPUT, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE
     }
 };
 
@@ -46,4 +35,22 @@ pub fn configure_console() -> io::Result<(HANDLE, HANDLE)> {
 pub fn clear_console() {
     print!("\x1B[2J\x1B[H"); // Clear screen
     io::stdout().flush().unwrap();
+}
+
+pub fn get_terminal_size() -> Result<(u16, u16), Error> {
+    unsafe {
+        let h_out: HANDLE = GetStdHandle(STD_OUTPUT_HANDLE)
+            .map_err(|_| Error::last_os_error())?;
+        let mut info: Console::CONSOLE_SCREEN_BUFFER_INFOEX = mem::zeroed();
+        info.cbSize = mem::size_of::<CONSOLE_SCREEN_BUFFER_INFOEX>() as u32;
+        
+        if GetConsoleScreenBufferInfoEx(h_out, &mut info).is_err() {
+            return Err(Error::last_os_error());
+        }
+
+        let w = (info.srWindow.Right - info.srWindow.Left + 1) as u16;
+        let h = (info.srWindow.Bottom - info.srWindow.Top + 1) as u16;
+
+        Ok((w, h))
+    }
 }

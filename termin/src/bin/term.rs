@@ -16,7 +16,10 @@ const VK_ESCAPE: u16 = 0x1B; // Escape key
 
 fn main() -> io::Result<()> {
     // Configure console for raw input   
-    let (stdin_handle, stdout_handle) = configure_console()?;
+    let (
+        stdin_handle, 
+        stdout_handle
+    ) = configure_console()?;
 
     // Menu items
     let items = [
@@ -30,10 +33,17 @@ fn main() -> io::Result<()> {
     print!("\x1B[?1049h"); // Enable alternate buffer
     clear_console();
 
+    let (stdout_width, stdout_height) = termin::console::get_terminal_size()?;
+
+    print!("\r\x1B[2K"); // Clean and clear line
+    for _ in 0..stdout_width {
+        print!("─"); // Fill the screen with empty lines
+    }
+
     println!("Select an option:");
     
     for (i, item) in items.iter().enumerate() {
-            print!("\r\x1B[2K"); // Limpia y vuelve a inicio de línea
+        print!("\r\x1B[2K"); // Clean and clear line
 
         if i == selected {
             println!("\x1B[7m> {}\x1B[0m", item);

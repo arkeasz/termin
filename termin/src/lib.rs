@@ -1,4 +1,6 @@
 pub mod console;
+pub mod box_chars;
+pub mod utils;
 
 pub enum KeyEvent {
     Up,
@@ -34,4 +36,27 @@ pub trait Component {
 
         print!("\x1B[{}A\r", self.height()); // Move cursor down to the original position
     }
+}
+
+
+enum Style {
+    Bold,
+    Italic,
+    Underline,
+}
+
+enum View {
+    Border,
+    Padding,
+    Margin,
+}
+
+impl View {
+    fn render(&self, content: String) -> String {
+        return content;
+    }
+}
+struct TUI {
+    style: Vec<Style>,
+    views: Vec<Box<dyn Component>>,
 }

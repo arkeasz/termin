@@ -4,7 +4,22 @@ use windows::Win32::System::Console::{GetConsoleScreenBufferInfoEx, CONSOLE_SCRE
 use windows::Win32::{
     Foundation::HANDLE, 
     System::Console::{
-        self, GetConsoleMode, GetStdHandle, SetConsoleMode, CONSOLE_MODE, DISABLE_NEWLINE_AUTO_RETURN, ENABLE_ECHO_INPUT, ENABLE_LINE_INPUT, ENABLE_PROCESSED_INPUT, ENABLE_PROCESSED_OUTPUT, ENABLE_VIRTUAL_TERMINAL_PROCESSING, ENABLE_WRAP_AT_EOL_OUTPUT, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE
+        self, 
+        COORD,
+        GetConsoleMode, 
+        GetStdHandle, 
+        SetConsoleMode, 
+        SetConsoleCursorPosition,
+        CONSOLE_MODE, 
+        DISABLE_NEWLINE_AUTO_RETURN, 
+        ENABLE_ECHO_INPUT, 
+        ENABLE_LINE_INPUT, 
+        ENABLE_PROCESSED_INPUT, 
+        ENABLE_PROCESSED_OUTPUT, 
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING, 
+        ENABLE_WRAP_AT_EOL_OUTPUT, 
+        STD_INPUT_HANDLE, 
+        STD_OUTPUT_HANDLE
     }
 };
 
@@ -53,4 +68,9 @@ pub fn get_terminal_size() -> Result<(u16, u16), Error> {
 
         Ok((w, h))
     }
+}
+
+pub fn set_cursor_position(x: i16, y: i16) {
+    print!("\x1B[{};{}H", y + 1, x + 1);
+    io::stdout().flush().unwrap();
 }

@@ -1,6 +1,6 @@
 
 use std::io::{self, Write};
-use termin::console::{clear_console, configure_console};
+use termin::{box_chars::BoxDrawing, console::{clear_console, configure_console, set_cursor_position}};
 use windows::Win32::{
     System::Console::{
         ReadConsoleInputW,
@@ -23,9 +23,9 @@ fn main() -> io::Result<()> {
 
     // Menu items
     let items = [
-        "op 1",
-        "op 2",
-        "op 3",
+        "Home",
+        "About",
+        "Settings",
     ];
     let mut selected = 0;
 
@@ -33,26 +33,74 @@ fn main() -> io::Result<()> {
     print!("\x1B[?1049h"); // Enable alternate buffer
     clear_console();
 
-    let (stdout_width, stdout_height) = termin::console::get_terminal_size()?;
+    let (width, height): (u16, u16) = termin::console::get_terminal_size()?;
 
     print!("\r\x1B[2K"); // Clean and clear line
-    for _ in 0..stdout_width {
+
+    print!("┌");
+    for _ in 1..width-1 {
+        print!("─");
+    }
+    println!("┐");
+    set_cursor_position(0, height as i16 - 1);
+    print!("{}", BoxDrawing::UpRight.as_char());
+    for _ in 1..width-1 {
         print!("─"); // Fill the screen with empty lines
     }
-
-    println!("Select an option:");
-    
-    for (i, item) in items.iter().enumerate() {
-        print!("\r\x1B[2K"); // Clean and clear line
-
-        if i == selected {
-            println!("\x1B[7m> {}\x1B[0m", item);
-        } else {
-            println!("  {}", item);
-        }
+    print!("{}", BoxDrawing::UpLeft.as_char());
+    set_cursor_position(0, 1);
+    for i in 1..height-1 {
+        set_cursor_position(0, i as i16);
+        println!("│"); // Fill the screen with empty lines
     }
+    set_cursor_position(0, width as i16 - 1);
+    for i in 1..height-1 {
+        set_cursor_position(width as i16 - 1, i as i16);
+        println!("│"); // Fill the screen with empty lines
+    }
+
+    // coords
+    // initial cords (0,0) (0, y_length) (x_length, 0) (x_length, y_length)
+    // new coords (padding, margin or border) relative to the initial coords
+    // we will call this var re
+    // (0 + re, 0 + re) (0 + re, y_length - re) (x_length - re, 0 + re) (x_length - re, y_length - re)
+    let mut re = 2u16; // Relative size for padding, margin or border
+    let new_coords = (
+        re as u16, 
+        re as u16, 
+        width - re*2, 
+        height - re*2
+    );
+    // Print menu items
+    // the width of the menu is will be able for porcentage of the terminal size
+    // the height of the menu is will be able for porcentage of the terminal size
+    // like 20% of the terminal size 
+    // by default the menu will be 100% of the relative size
+
+    set_cursor_position(new_coords.0 as i16, new_coords.1 as i16);
+    // make a border for the menu
+    print!("┌");
+    for i in new_coords.0..new_coords.2 {
+        print!("─");
+        if i == new_coords.0 - 1 {
+            print!("┐");
+        } 
+    }
+    println!("┐");
+    set_cursor_position(new_coords.0 as i16 + re as i16, new_coords.1 as i16 + 1);
+    let dyncom = (new_coords.0 as i16 + re as i16, new_coords.1 as i16 + 1);
+    for (i, item) in items.iter().enumerate() {
+        if i == selected {
+            print!("  \x1B[7m> {}\x1B[0m", item); // Highlight selected item
+        } else {
+                print!("    {}", item); // Normal item
+            }
+    }
+    io::stdout().flush()?; // Forzar impresión
     // loop
     loop {
+
+
         let mut record: [INPUT_RECORD; 1] = unsafe { std::mem::zeroed() };
         let mut read = 0u32;
 
@@ -89,16 +137,13 @@ fn main() -> io::Result<()> {
                 }
 
                 if redraw {
-                    // move cursor to top left
-                    print!("\x1B[{}A", items.len()); // Move cursor up
+                    set_cursor_position(dyncom.0, dyncom.1);
                     
                     for (i, item) in items.iter().enumerate() {
-                        print!("\r\x1B[2K"); // Clear current line
-
                         if i == selected {
-                            println!("\x1B[7m> {}\x1B[0m\r", item);   
+                            print!("  \x1B[7m> {}\x1B[0m", item);   
                         } else {
-                            println!("  {}\r", item);
+                            print!("    {}", item);
                         }
                     }
                     io::stdout().flush()?;

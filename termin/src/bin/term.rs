@@ -10,6 +10,8 @@ use windows::Win32::{
 
 // Virtual key codes in snake_case
 const VK_UP: u16 = 0x26; // Up arrow key
+const VK_LEFT: u16 = 0x25; // Left arrow key
+const VK_RIGHT: u16 = 0x27; // Right arrow key
 const VK_DOWN: u16 = 0x28; // Down arrow key
 const VK_RETURN: u16 = 0x0D; // Enter key
 const VK_ESCAPE: u16 = 0x1B; // Escape key
@@ -22,12 +24,13 @@ fn main() -> io::Result<()> {
     ) = configure_console()?;
 
     // Menu items
-    let items = [
+    let items: [&'static str; 4] = [
         "Home",
         "About",
         "Settings",
+        "Exit",
     ];
-    let mut selected = 0;
+    let mut selected: usize = 0;
 
     // Initial render
     print!("\x1B[?1049h"); // Enable alternate buffer
@@ -65,9 +68,9 @@ fn main() -> io::Result<()> {
     // we will call this var re
     // (0 + re, 0 + re) (0 + re, y_length - re) (x_length - re, 0 + re) (x_length - re, y_length - re)
     let mut re = 2u16; // Relative size for padding, margin or border
-    let new_coords = (
+    let mut new_coords = (
         re as u16, 
-        re as u16, 
+        re/2 as u16, 
         width - re*2, 
         height - re*2
     );
@@ -77,6 +80,7 @@ fn main() -> io::Result<()> {
     // like 20% of the terminal size 
     // by default the menu will be 100% of the relative size
 
+    // set_cursor_position(new_coords.0 as i16, new_coords.1 as i16);
     set_cursor_position(new_coords.0 as i16, new_coords.1 as i16);
     // make a border for the menu
     print!("┌");
@@ -87,15 +91,85 @@ fn main() -> io::Result<()> {
         } 
     }
     println!("┐");
+    set_cursor_position(new_coords.0 as i16, new_coords.1 as i16 + 1);
+    print!("│");
     set_cursor_position(new_coords.0 as i16 + re as i16, new_coords.1 as i16 + 1);
     let dyncom = (new_coords.0 as i16 + re as i16, new_coords.1 as i16 + 1);
     for (i, item) in items.iter().enumerate() {
         if i == selected {
             print!("  \x1B[7m> {}\x1B[0m", item); // Highlight selected item
         } else {
-                print!("    {}", item); // Normal item
-            }
+            print!("    {}", item); // Normal item
+        }
     }
+    set_cursor_position(
+        new_coords.2 as i16 + 1,
+        new_coords.1 as i16 + 1);
+    println!("│");
+
+    set_cursor_position(
+        new_coords.0 as i16, 
+        new_coords.1 as i16 + 2);
+    print!("{}", BoxDrawing::UpRight.as_char());
+    for i in new_coords.0..new_coords.2 {
+        print!("─");
+        if i == new_coords.2 - 1 {
+            print!("{}", BoxDrawing::UpLeft.as_char());
+            break;
+        } 
+    }
+    // set_cursor_position(0, 0);
+    // we take the las cursor position that is the last line of the menu
+    set_cursor_position(
+        new_coords.0 as i16, 
+        new_coords.1 as i16 + 3
+    );
+
+    // let state =
+    let mut view = "Home";
+    new_coords.1 += 3; // Adjust the new coords for the view
+    // new_coords.2 -= 1; // Adjust the new coords for the view
+    // print borders
+    print!("{}", BoxDrawing::DownRight.as_char());
+    for i in new_coords.0..new_coords.2 {
+        print!("─");
+        if i == new_coords.2 - 1 {
+            print!("{}\n", BoxDrawing::DownLeft.as_char());
+            break;
+        } 
+    }
+
+    // now we print the border laterals
+    for i in new_coords.1..new_coords.3 + 1 {
+        set_cursor_position(new_coords.0 as i16, i as i16 + 1);
+        print!("│");
+        set_cursor_position(new_coords.2 as i16 + 1, i as i16 + 1);
+        print!("│");
+    }
+
+    set_cursor_position(
+        new_coords.0 as i16,
+        new_coords.3 as i16 + 2
+    );
+    print!("{}", BoxDrawing::UpRight.as_char());
+    for i in new_coords.0..new_coords.2 {
+        print!("─");
+        if i == new_coords.2 - 1 {
+            print!("{}", BoxDrawing::UpLeft.as_char());
+            break;
+        } 
+    }
+
+    new_coords.0 += 1; // Adjust the new coords for the view
+    new_coords.1 += 1; // Adjust the new coords for the view
+    new_coords.2 -= 1; // Adjust the new coords for the view
+    new_coords.3 -= 1; // Adjust the new coords for the view
+
+    set_cursor_position(
+        new_coords.0 as i16, 
+        new_coords.1 as i16 
+    );
+    print!("Home");
     io::stdout().flush()?; // Forzar impresión
     // loop
     loop {
@@ -116,20 +190,27 @@ fn main() -> io::Result<()> {
             let ke = unsafe { record[0].Event.KeyEvent };
             if ke.bKeyDown == true {
                 let mut redraw = true;
-
+                let mut change_view = false;
                 match ke.wVirtualKeyCode {
-                    VK_UP => {
+                    VK_LEFT => {
                         if selected > 0 { selected -= 1; };
                         
                     }
-                    VK_DOWN => {
+                    VK_RIGHT => {
                         if selected + 1 < items.len() { selected += 1; }
                     }
                     VK_RETURN => {
                         if selected == items.len() - 1 {
                             break;
-                        } else {
-                            // Aquí puedes manejar Option 1 o 2
+                        } else if selected == 0 {
+                            view = "Home";
+                            change_view = true;
+                        } else if selected == 1 {
+                            view = "About";
+                            change_view = true;
+                        } else if selected == 2 {
+                            view = "Settings";
+                            change_view = true;
                         }
                     }
                     0x51 /* 'Q' */ => break,
@@ -145,6 +226,14 @@ fn main() -> io::Result<()> {
                         } else {
                             print!("    {}", item);
                         }
+                    }
+
+                    if change_view {
+                        set_cursor_position(
+                            new_coords.0 as i16, 
+                            new_coords.1 as i16 
+                        );
+                        print!("{}    ", view);
                     }
                     io::stdout().flush()?;
                 }

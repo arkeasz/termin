@@ -1,8 +1,6 @@
-# Termin
-
+# 🧮 Termin – A Minimalist TUI from Scratch in Rust
 ![alt text](./assets/image.png)
 
-# 🧮 Termin – A Minimalist TUI from Scratch in Rust
 
 **Termin** is a low-level, dependency-free **Text User Interface (TUI)** toolkit built entirely from scratch in Rust.  
 It aims to provide full control over terminal rendering and interaction, using native system calls and ANSI escape sequences—no crates like `crossterm`, `tui-rs`, or `ratatui`.

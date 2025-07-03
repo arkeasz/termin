@@ -131,9 +131,9 @@ fn main() -> io::Result<()> {
     // new_coords.2 -= 1; // Adjust the new coords for the view
     // print borders
     print!("{}", BoxDrawing::DownRight.as_char());
-    for i in new_coords.0..new_coords.2 {
+    for i in new_coords.0..(new_coords.2/2) {
         print!("─");
-        if i == new_coords.2 - 1 {
+        if i == (new_coords.2/2) - 1 {
             print!("{}\n", BoxDrawing::DownLeft.as_char());
             break;
         } 
@@ -143,7 +143,7 @@ fn main() -> io::Result<()> {
     for i in new_coords.1..new_coords.3 + 1 {
         set_cursor_position(new_coords.0 as i16, i as i16 + 1);
         print!("│");
-        set_cursor_position(new_coords.2 as i16 + 1, i as i16 + 1);
+        set_cursor_position((new_coords.2/2) as i16 + 1, i as i16 + 1);
         print!("│");
     }
 
@@ -152,9 +152,9 @@ fn main() -> io::Result<()> {
         new_coords.3 as i16 + 2
     );
     print!("{}", BoxDrawing::UpRight.as_char());
-    for i in new_coords.0..new_coords.2 {
+    for i in new_coords.0..(new_coords.2/2) {
         print!("─");
-        if i == new_coords.2 - 1 {
+        if i == (new_coords.2/2) - 1 {
             print!("{}", BoxDrawing::UpLeft.as_char());
             break;
         } 

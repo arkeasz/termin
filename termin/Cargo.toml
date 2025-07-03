@@ -3,10 +3,6 @@ name = "termin"
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
-widestring = "1.2.0"
-windows-sys = "0.60.2"
-
 [dependencies.windows]
 version = "0.61.3"
 features = [

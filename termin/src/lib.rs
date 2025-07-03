@@ -7,16 +7,24 @@ pub enum KeyEvent {
     Down,
     Enter,
     Escape,
+    Left,
+    Right,
     Other(char),
 }
 
 impl KeyEvent {
     pub fn get_code(code: u16) -> Self {
         match code {
+            // VK_LEFT
+            0x25 => KeyEvent::Left,    // VK_LEFT
+            0x27 => KeyEvent::Right,   // VK_RIGHT
             0x26 => KeyEvent::Up,      // VK_UP
             0x28 => KeyEvent::Down,    // VK_DOWN
             0x0D => KeyEvent::Enter,   // VK_RETURN
             0x1B => KeyEvent::Escape,  // VK_ESCAPE
+            // Quit
+            0x51 => KeyEvent::Other('Q'),
+            0x71 => KeyEvent::Other('q'), // 'q' or 'Q' to quit
             _ => KeyEvent::Other(char::from_u32(code as u32).unwrap_or('?')),
         }
     }

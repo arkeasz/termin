@@ -54,8 +54,11 @@ pub fn clear_console() {
 
 pub fn get_terminal_size() -> Result<(u16, u16), Error> {
     unsafe {
+        // Get the standard output handle
         let h_out: HANDLE = GetStdHandle(STD_OUTPUT_HANDLE)
             .map_err(|_| Error::last_os_error())?;
+        
+        // Get the console screen buffer info
         let mut info: Console::CONSOLE_SCREEN_BUFFER_INFOEX = mem::zeroed();
         info.cbSize = mem::size_of::<CONSOLE_SCREEN_BUFFER_INFOEX>() as u32;
         
@@ -70,6 +73,9 @@ pub fn get_terminal_size() -> Result<(u16, u16), Error> {
     }
 }
 
+// \n or \r are not used in the terminal, so we use ANSI escape codes to set the cursor position
+// because they are more efficient and work across different platforms
+// This function sets the cursor position to (x, y) in the terminal
 pub fn set_cursor_position(x: i16, y: i16) {
     print!("\x1B[{};{}H", y + 1, x + 1);
     io::stdout().flush().unwrap();

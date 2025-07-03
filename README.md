@@ -2,8 +2,8 @@
 ![alt text](./assets/image.png)
 
 
-**Termin** is a low-level, dependency-free **Text User Interface (TUI)** toolkit built entirely from scratch in Rust.  
-It aims to provide full control over terminal rendering and interaction, using native system calls and ANSI escape sequences—no crates like `crossterm`, `tui-rs`, or `ratatui`.
+**Termin** is a low-level, minimal-dependency **Text User Interface (TUI)** toolkit built entirely from scratch in Rust, avoiding high-level TUI abstractions.  
+It aims to provide full control over terminal rendering and interaction, using native system calls and ANSI escape sequences—without replyng on high-level TUI libraries like `crossterm`, `tui-rs`, or `ratatui`.
 
 ---
 
